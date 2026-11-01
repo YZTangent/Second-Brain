@@ -1490,7 +1490,7 @@ git commit -m "feat(index): add RRF fusion, timeline external hydration, and Bra
 - Create: `crates/brain-core/src/tx/audit.rs`
 - Modify: `crates/brain-core/src/lib.rs`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Add `test_vault_init_empty_reopen_and_abort_on_non_empty_non_vault` and `test_worktree_atomic_commit_session_guard_and_revert` in `crates/brain-core/src/tx/mod.rs` testing:
 1. Initializing a missing or empty directory creates `.second-brain.json`, the 5 node directories, and `main` + `manual` branches.
@@ -1498,12 +1498,12 @@ Add `test_vault_init_empty_reopen_and_abort_on_non_empty_non_vault` and `test_wo
 3. Passing a non-empty directory that lacks `.second-brain.json` aborts with `TxError::InvalidVaultDirectory` without modifying existing files.
 4. `manual` root checkout, `.brain/tx/<tx_id>` creation off `main`, `TxError::SessionMismatch`, atomic commit onto `main` + sync to `manual`, stray-edit preservation, and `revert_commit`.
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `cargo test -p brain-core`
 Expected: FAIL because `tx/` submodules do not exist yet.
 
-- [ ] **Step 3: Write minimal implementation**
+- [x] **Step 3: Write minimal implementation**
 
 Split worktree transaction logic cleanly across:
 - `crates/brain-core/src/tx/vault.rs` — `ensure_or_init_vault(vault_root)`: checks if `vault_root` does not exist or is empty (initializes `.second-brain.json`, `.gitignore`, 5 folders, `main` + `manual` branches), or if `.second-brain.json` + `.git` exist (validates and opens), or else returns `Err(TxError::InvalidVaultDirectory)`.
@@ -1513,16 +1513,16 @@ Split worktree transaction logic cleanly across:
 - `crates/brain-core/src/tx/audit.rs` — `AuditCommit`, `daily_stray_checkpoint`, `list_audit_commits`, `revert_commit`, `load_branch_documents`.
 - `crates/brain-core/src/tx/mod.rs` — `WorktreeCoordinator` facade delegating to `vault`, `git`, `session`, `lifecycle`, and `audit`.
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `cargo test -p brain-core`
 Expected: PASS (9 tests passing).
 
-- [ ] **Step 5: Strictly follow the implementer's subagents**
+- [x] **Step 5: Strictly follow the implementer's subagents**
 
 Ensure to strictly follow the implementer's subagents workflow within the SDLC verification loop to handle any code reviews (regressions, sanitation, vulnerability) and ensure quality before committing.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add crates/brain-core/src/
