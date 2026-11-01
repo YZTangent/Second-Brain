@@ -917,7 +917,7 @@ git commit -m "feat(embedding): add EmbeddingProvider trait and per-provider bin
 - Create: `crates/brain-core/src/index/mod.rs`
 - Modify: `crates/brain-core/src/lib.rs`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 In `crates/brain-core/src/index/mod.rs`:
 ```rust
@@ -953,12 +953,12 @@ mod tests {
 }
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `cargo test -p brain-core`
 Expected: FAIL because `index/` submodules do not exist yet.
 
-- [ ] **Step 3: Write minimal implementation**
+- [x] **Step 3: Write minimal implementation**
 
 Write `crates/brain-core/src/index/chunker.rs`:
 ```rust
@@ -1248,16 +1248,16 @@ pub fn cosine_similarity(a: &[f32], b: &[f32]) -> f32 {
 
 Write initial `crates/brain-core/src/index/mod.rs` exporting `bm25`, `chunker`, `graph`, and `vector`, and add `pub mod index;` to `crates/brain-core/src/lib.rs`.
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `cargo test -p brain-core`
 Expected: PASS (7 tests passing).
 
-- [ ] **Step 5: Strictly follow the implementer's subagents**
+- [x] **Step 5: Strictly follow the implementer's subagents**
 
 Ensure to strictly follow the implementer's subagents workflow within the SDLC verification loop to handle any code reviews (regressions, sanitation, vulnerability) and ensure quality before committing.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add crates/brain-core/src/

@@ -7,6 +7,7 @@ edition = "2021"
 anyhow.workspace = true
 async-trait.workspace = true
 blake3.workspace = true
+petgraph.workspace = true
 regex.workspace = true
 serde.workspace = true
 serde_json.workspace = true
