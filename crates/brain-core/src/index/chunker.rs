@@ -3,7 +3,7 @@ use crate::model::NodeDocument;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
-const DEFAULT_FALLBACK_EMBED_DIMS: usize = 64;
+pub const DEFAULT_FALLBACK_EMBED_DIMS: usize = 64;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ChunkRecord {
