@@ -40,24 +40,32 @@ flowchart LR
     API <--> CLI
 ```
 
-## 2. Directory Layout
+## 2. Two-Repository Separation (Code Repo vs Data Vault Repo)
 
+Engine code and personal brain content live in **two separate Git repositories** so code development history never mixes with memory/knowledge commit history (`remember: ...`, `synthesize: ...`).
+
+### 2.1 Engine Code Repository (`second-brain-v2/`)
 ```
-second-brain-v2/                # Root working tree checked out on branch `manual`
+second-brain-v2/                # Engine source code repository
+├── Cargo.toml
 ├── config.toml                 # Daemon config: embedding provider, harnesses, observers, sync sources
-├── knowledge/                  # Durable concepts, insights, patterns, snippets (<slug>.md)
-├── goals/                      # Long-term milestones and directions (<slug>.md)
-├── tasks/                      # Actionable items (<slug>.md)
-├── journal/                    # Daily episodic logs (YYYY-MM-DD.md)
-├── relationships/              # People and organizations interacted with (<slug>.md)
-├── .brain/                     # Git-ignored runtime caches & worktrees
-│   ├── embeddings/             # Per-provider/model vector caches (<provider>_<model>.bin)
-│   ├── external_cache.json     # Read-only external state namespaced by source (buganizer, critique, ...)
-│   ├── observer_state.json     # Per-harness transcript cursors & per-session pushed-node dedup sets
-│   └── tx/                     # Ephemeral transaction worktrees (.brain/tx/<tx_id>)
 ├── crates/
-│   ├── braind/                 # Headless Rust daemon
-│   └── brainctl/               # CLI & MCP stdio bridge
+│   ├── brain-core/             # Core domain library
+│   │   └── src/
+│   │       ├── config/         # Server, embedding, harness, observer & sync configs
+│   │       ├── model/          # types, frontmatter, document parser, wikilink extractor
+│   │       ├── embedding/      # EmbeddingProvider trait, per-provider cache, gemini adapter
+│   │       ├── index/          # chunker, petgraph, bm25, vector, rrf, timeline
+│   │       ├── tx/             # vault validator, git runner, session guard, worktree lifecycle, audit
+│   │       └── workers/        # supervisor, harness/, observer/, sync/, synthesizer
+│   ├── braind/                 # Headless HTTP/SSE daemon (accepts --vault <path>)
+│   │   └── src/
+│   │       ├── state.rs        # AppState & dual branch index holder
+│   │       └── api/            # tx, search, nodes, audit, workers, openapi routes
+│   └── brainctl/               # Thin CLI & restricted MCP stdio bridge
+│       └── src/
+│           ├── main.rs
+│           └── mcp.rs
 ├── skills/
 │   ├── remember/               # Explicit atomic capture skill
 │   └── recall/                 # Explicit long-form deep search skill
@@ -66,6 +74,28 @@ second-brain-v2/                # Root working tree checked out on branch `manua
     ├── adr/
     └── changes/
 ```
+
+### 2.2 Data Vault Repository (`<vault-path>/`, passed to `braind`)
+```
+<vault-path>/                   # Separate Git repository checked out on branch `manual`
+├── .second-brain.json          # Tracked vault marker file identifying a valid Second Brain v2 vault
+├── knowledge/                  # Durable concepts, insights, patterns, snippets (<slug>.md)
+├── goals/                      # Long-term milestones and directions (<slug>.md)
+├── tasks/                      # Actionable items (<slug>.md)
+├── journal/                    # Daily episodic logs (YYYY-MM-DD.md)
+├── relationships/              # People and organizations interacted with (<slug>.md)
+└── .brain/                     # Git-ignored runtime caches & worktrees inside the vault
+    ├── embeddings/             # Per-provider/model vector caches (<provider>_<model>.bin)
+    ├── external_cache.json     # Read-only external state namespaced by source (buganizer, critique, ...)
+    ├── observer_state.json     # Per-harness transcript cursors & per-session pushed-node dedup sets
+    └── tx/                     # Ephemeral transaction worktrees (.brain/tx/<tx_id>)
+```
+
+### 2.3 Vault Initialization & Safety Guard
+`braind` accepts a target vault directory path on startup (`braind --vault <path>`):
+1. **Valid Second Brain Vault**: If `<path>` contains `.second-brain.json`, `.git`, and the required vault layout (`main` and `manual` branches), `braind` opens it.
+2. **Missing or Empty Directory**: If `<path>` does not exist or is an empty directory, `braind` creates it, initializes Git (`main` and `manual` branches, with root checked out on `manual`), writes `.second-brain.json` and `.gitignore`, creates the 5 node directories (`knowledge/`, `goals/`, `tasks/`, `journal/`, `relationships/`), and commits the initial vault state.
+3. **Non-Empty Non-Vault Directory (Safety Abort)**: If `<path>` exists, contains any files/directories, and lacks a valid `.second-brain.json` marker + vault Git structure, `braind` **aborts startup immediately with an error** without creating or modifying any files.
 
 ## 3. Git Branch & Worktree Transaction Topology (`manual` vs `main`)
 
