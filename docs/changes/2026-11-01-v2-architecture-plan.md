@@ -317,7 +317,7 @@ git commit -m "feat(config): scaffold workspace and modular config hierarchy"
 - Create: `crates/brain-core/src/model/wikilink.rs`
 - Modify: `crates/brain-core/src/lib.rs`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 In `crates/brain-core/src/model/mod.rs`:
 ```rust
@@ -420,12 +420,12 @@ Content
 }
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `cargo test -p brain-core`
 Expected: FAIL because `model/` submodules do not exist yet.
 
-- [ ] **Step 3: Write minimal implementation**
+- [x] **Step 3: Write minimal implementation**
 
 Write `crates/brain-core/src/model/types.rs`:
 ```rust
@@ -643,16 +643,16 @@ pub mod config;
 pub mod model;
 ```
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `cargo test -p brain-core`
 Expected: PASS (5 tests passing).
 
-- [ ] **Step 5: Strictly follow the implementer's subagents**
+- [x] **Step 5: Strictly follow the implementer's subagents**
 
 Ensure to strictly follow the implementer's subagents workflow within the SDLC verification loop to handle any code reviews (regressions, sanitation, vulnerability) and ensure quality before committing.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add crates/brain-core/src/
