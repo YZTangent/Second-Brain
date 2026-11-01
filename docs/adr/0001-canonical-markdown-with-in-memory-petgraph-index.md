@@ -1,0 +1,3 @@
+# 0001: Canonical Markdown with In-Memory `petgraph` and Hybrid Index
+
+We store all durable Second Brain entities as Git-tracked Markdown files on disk and maintain the property graph (`petgraph`), BM25 inverted index, and flat SIMD vector index purely in memory inside a single Rust daemon (`braind`), backed by per-provider/model embedding caches (`.brain/embeddings/<provider>_<model>.bin`). At personal scale ($10^3\text{--}10^5$ chunks), an in-memory Rust index delivers `<5ms` hybrid RRF queries without SQLite schema migrations, lock contention, or split-brain state between a relational database and disk files.

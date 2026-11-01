@@ -1,0 +1,3 @@
+# 0003: Five Core Node Types and Read-Only External Cache Enrichment
+
+The vault defines exactly 5 durable Markdown node types: `knowledge`, `goal`, `task`, `journal`, and `relationship` (people and organizations). Only `task` carries a `status` field (`open | in_progress | blocked | done`) and optional `due`, `bug`, and `change` fields; no node carries an arbitrary `priority` field. External Buganizer issues and Critique CLs are polled by per-source sync workers into a read-only cache (`.brain/external_cache.json`) to hydrate task P-levels and review state at query time without polluting Git history or creating stub graph nodes.

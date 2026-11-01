@@ -1,0 +1,3 @@
+# 0004: Dual-Path Recollection: Background Heuristic Pusher and Explicit `/recall` Deep Search
+
+Recollection is split into two mechanisms to prevent agents from spamming MCP search calls and polluting their context windows: (1) a read-only per-harness `observer:<harness>` worker tails active session transcripts, runs `<5ms` in-memory BM25 + SIMD cosine matching on new turns, and pushes high-confidence matches via the harness adapter (`agentapi`); and (2) explicit `/recall` invokes Tier-2 Agentic Deep Search via a pluggable `HeadlessHarness` (`jetski -p`) for long-form multi-hop graph synthesis. Capture remains strictly gated on explicit `/remember` calls to prevent unverified mid-session debugging hypotheses from poisoning the graph.

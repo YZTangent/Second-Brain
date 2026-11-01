@@ -1,0 +1,3 @@
+# 0006: Trait-Based Pluggability for Embeddings, Headless Harnesses, Observers, and Sync Sources
+
+To support multiple agent harnesses (Jetski, Pi, Claude Code, OpenCode), embedding engines, and external issue/code-review trackers without core daemon changes, `braind` defines four core traits configured via `config.toml`: `EmbeddingProvider` (with per-provider/model `.brain/embeddings/<provider>_<model>.bin` caches so switching providers never triggers full-vault re-embedding), `HeadlessHarness` (initial: `jetski -p`), `ObserverHarnessAdapter` (one togglable worker per harness, initial: `observer:jetski`), and `ExternalSyncSource` (one togglable worker per source, initial: `sync:buganizer` and `sync:critique`).

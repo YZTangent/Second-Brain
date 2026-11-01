@@ -1,0 +1,3 @@
+# 0002: `manual` vs `main` Branch Topology and Worktree-Backed Atomic `/remember` Transactions
+
+The repository root working directory stays checked out on branch `manual` while `main` serves as the canonical ledger (and default branch served to Web UIs, with optional `?branch=main|manual` selection). Every explicit `/remember` call (and daily `synthesizer` batch) executes inside a session-scoped detached Git worktree (`.brain/tx/<tx_id>`) rooted at `main`, commits atomically (`1 /remember = 1 commit`), advances `main` without checked-out branch conflicts, and merges `main` into `manual`. This eliminates v1's `inbox -> proposed` manual review bottleneck while preventing micro-commit spam and enabling 1-click commit-granular `git revert` auditing.
