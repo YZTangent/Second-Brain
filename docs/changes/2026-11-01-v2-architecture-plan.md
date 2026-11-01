@@ -1599,16 +1599,16 @@ git commit -m "feat(workers): add modular harness, per-harness observer, per-sou
 - Create: `skills/remember/SKILL.md`
 - Create: `skills/recall/SKILL.md`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Add `test_api_tx_session_enforcement_branch_selection_and_get_search` in `crates/braind/src/api/mod.rs` and `test_agent_mcp_tools_exclude_ui_only_endpoints` in `crates/brainctl/src/mcp.rs`.
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `cargo test --workspace`
 Expected: FAIL because `crates/braind/src/state.rs`, `crates/braind/src/api/*`, and `crates/brainctl/src/mcp.rs` do not exist yet.
 
-- [ ] **Step 3: Write minimal implementation**
+- [x] **Step 3: Write minimal implementation**
 
 Implement each modular handler file in `crates/braind/src/`:
 - `state.rs`: `AppState` managing `coord`, `main_index`, `manual_index`, `external_cache`, `supervisor`, and `events_tx`.
@@ -1621,16 +1621,16 @@ Implement each modular handler file in `crates/braind/src/`:
 - `crates/brainctl/src/mcp.rs`: `AGENT_MCP_TOOLS` whitelist (`brain_begin_tx`, `brain_tx_upsert`, `brain_tx_delete`, `brain_commit_tx`, `brain_abort_tx`, `brain_search`, `brain_deep_search`, `brain_get_node`, `brain_timeline`) and JSON-RPC tool dispatcher.
 - `skills/remember/SKILL.md` & `skills/recall/SKILL.md`.
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `cargo test --workspace`
 Expected: PASS (all unit and HTTP/MCP integration tests passing across `brain-core`, `braind`, and `brainctl`).
 
-- [ ] **Step 5: Strictly follow the implementer's subagents**
+- [x] **Step 5: Strictly follow the implementer's subagents**
 
 Ensure to strictly follow the implementer's subagents workflow within the SDLC verification loop to handle any code reviews (regressions, sanitation, vulnerability) and ensure quality before committing.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add crates/ skills/
