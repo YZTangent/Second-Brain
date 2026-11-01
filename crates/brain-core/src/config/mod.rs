@@ -34,7 +34,12 @@ mod tests {
     #[test]
     fn test_load_default_config_toml() {
         let manifest_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-        let config_path = manifest_dir.parent().unwrap().parent().unwrap().join("config.toml");
+        let config_path = manifest_dir
+            .parent()
+            .unwrap()
+            .parent()
+            .unwrap()
+            .join("config.toml");
         let cfg = BrainConfig::load(&config_path).unwrap();
         assert_eq!(cfg.server.port, 7420);
         assert_eq!(cfg.embedding.provider, "gemini");

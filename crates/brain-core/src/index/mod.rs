@@ -6,9 +6,7 @@ pub mod timeline;
 pub mod vector;
 
 pub use rrf::SearchHit;
-pub use timeline::{
-    ExternalBug, ExternalCache, ExternalChange, HydratedTask, TimelineProjection,
-};
+pub use timeline::{ExternalBug, ExternalCache, ExternalChange, HydratedTask, TimelineProjection};
 
 use crate::embedding::deterministic_embed;
 use crate::model::NodeDocument;
@@ -76,15 +74,19 @@ impl BrainIndex {
                     node_type: doc.meta.node_type,
                     rrf_score: fused.get(&id).copied().unwrap_or(0.0),
                     max_cosine: vec_scores.get(&id).copied().unwrap_or(0.0),
-                    snippet: snippets.get(&id).cloned().unwrap_or_else(|| {
-                        doc.body.lines().next().unwrap_or("").to_string()
-                    }),
+                    snippet: snippets
+                        .get(&id)
+                        .cloned()
+                        .unwrap_or_else(|| doc.body.lines().next().unwrap_or("").to_string()),
                 })
             })
             .collect()
     }
 
-    pub fn build_timeline(&self, external: &timeline::ExternalCache) -> timeline::TimelineProjection {
+    pub fn build_timeline(
+        &self,
+        external: &timeline::ExternalCache,
+    ) -> timeline::TimelineProjection {
         timeline::project_timeline(&self.graph_store, external)
     }
 
@@ -96,8 +98,7 @@ impl BrainIndex {
     }
 
     pub fn list_nodes(&self) -> Vec<NodeDocument> {
-        let mut nodes: Vec<NodeDocument> =
-            self.graph_store.graph.node_weights().cloned().collect();
+        let mut nodes: Vec<NodeDocument> = self.graph_store.graph.node_weights().cloned().collect();
         nodes.sort_by(|a, b| a.meta.id.cmp(&b.meta.id));
         nodes
     }

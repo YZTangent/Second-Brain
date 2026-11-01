@@ -120,7 +120,10 @@ mod tests {
         assert_eq!(provider.model_id(), "gemini-embedding-2-preview");
         assert_eq!(provider.dimensions(), 8);
 
-        let vecs = provider.embed_batch(&["rust async", "rust async"]).await.unwrap();
+        let vecs = provider
+            .embed_batch(&["rust async", "rust async"])
+            .await
+            .unwrap();
         assert_eq!(vecs.len(), 2);
         assert_eq!(vecs[0].len(), 8);
         assert_eq!(vecs[0], vecs[1]);

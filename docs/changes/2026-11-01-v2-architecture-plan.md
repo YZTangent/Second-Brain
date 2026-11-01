@@ -1545,16 +1545,16 @@ git commit -m "feat(tx): add modular git runner, session guard, worktree lifecyc
 - Create: `crates/brain-core/src/workers/synthesizer.rs`
 - Modify: `crates/brain-core/src/lib.rs`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Add `test_observer_pushes_high_confidence_memory_once_per_session` in `crates/brain-core/src/workers/observer/mod.rs` and `test_supervisor_registers_per_harness_and_per_source_workers` in `crates/brain-core/src/workers/mod.rs`.
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `cargo test -p brain-core`
 Expected: FAIL because `workers/` submodules do not exist yet.
 
-- [ ] **Step 3: Write minimal implementation**
+- [x] **Step 3: Write minimal implementation**
 
 Implement each focused worker submodule:
 - `workers/harness/mod.rs` & `workers/harness/jetski.rs` (`HeadlessHarness` trait & `JetskiHeadlessHarness`)
@@ -1563,16 +1563,16 @@ Implement each focused worker submodule:
 - `workers/synthesizer.rs` (`run_daily_checkpoint_and_synthesize`)
 - `workers/mod.rs` (`WorkerSupervisor`, `WorkerRunState`, `WorkerInfo`)
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `cargo test -p brain-core`
 Expected: PASS (11 tests passing).
 
-- [ ] **Step 5: Strictly follow the implementer's subagents**
+- [x] **Step 5: Strictly follow the implementer's subagents**
 
 Ensure to strictly follow the implementer's subagents workflow within the SDLC verification loop to handle any code reviews (regressions, sanitation, vulnerability) and ensure quality before committing.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add crates/brain-core/src/
