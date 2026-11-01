@@ -102,7 +102,7 @@ second-brain-v2/
 - Create: `crates/brainctl/Cargo.toml`
 - Create: `crates/brainctl/src/main.rs`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 In `crates/brain-core/src/config/mod.rs`:
 ```rust
@@ -127,12 +127,12 @@ mod tests {
 }
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `cargo test -p brain-core`
 Expected: FAIL because workspace manifests and `config/` files do not exist yet.
 
-- [ ] **Step 3: Write minimal implementation**
+- [x] **Step 3: Write minimal implementation**
 
 Write `Cargo.toml`:
 ```toml
@@ -289,16 +289,16 @@ pub mod config;
 
 Create stub `crates/braind/Cargo.toml` (`src/main.rs`) and `crates/brainctl/Cargo.toml` (`src/main.rs`).
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `cargo test -p brain-core`
 Expected: PASS (1 test passing).
 
-- [ ] **Step 5: Strictly follow the implementer's subagents**
+- [x] **Step 5: Strictly follow the implementer's subagents**
 
 Ensure to strictly follow the implementer's subagents workflow within the SDLC verification loop to handle any code reviews (regressions, sanitation, vulnerability) and ensure quality before committing.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add Cargo.toml config.toml crates/

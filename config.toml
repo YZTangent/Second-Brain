@@ -1,0 +1,34 @@
+[server]
+host = "127.0.0.1"
+port = 7420
+
+[embedding]
+provider = "gemini"
+model = "text-embedding-004"
+dimensions = 768
+
+[harness]
+default = "jetski"
+command = "jetski"
+args = ["-p"]
+
+[observers.jetski]
+enabled = true
+watch_glob = "~/.gemini/jetski/brain/*/transcript.jsonl"
+rrf_threshold = 0.025
+cosine_threshold = 0.72
+
+[observers.pi]
+enabled = false
+watch_glob = "~/.pi/sessions/*.jsonl"
+rrf_threshold = 0.025
+cosine_threshold = 0.72
+
+[sync.buganizer]
+enabled = true
+interval_secs = 1800
+query = "assignee:me status:open"
+
+[sync.critique]
+enabled = true
+interval_secs = 1800
