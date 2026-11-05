@@ -9,8 +9,8 @@ dimensions = 768
 
 [harness]
 default = "jetski"
-command = "jetski"
-args = ["-p"]
+command = "/google/bin/releases/jetski-devs/tools/cli"
+args = ["--disable-slash-commands", "-p"]
 
 [observers.jetski]
 enabled = true

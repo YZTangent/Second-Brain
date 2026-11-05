@@ -7,8 +7,8 @@ use tokio::process::Command;
 use tokio::time::timeout;
 
 const HARNESS_ID_JETSKI: &str = "jetski";
-const DEFAULT_JETSKI_COMMAND: &str = "jetski";
-const DEFAULT_JETSKI_FLAG: &str = "-p";
+const DEFAULT_JETSKI_COMMAND: &str = "/google/bin/releases/jetski-devs/tools/cli";
+const DEFAULT_JETSKI_FLAGS: &[&str] = &["--disable-slash-commands", "-p"];
 
 #[derive(Debug, Clone)]
 pub struct JetskiHeadlessHarness {
@@ -29,7 +29,10 @@ impl Default for JetskiHeadlessHarness {
     fn default() -> Self {
         Self {
             command: DEFAULT_JETSKI_COMMAND.to_string(),
-            args: vec![DEFAULT_JETSKI_FLAG.to_string()],
+            args: DEFAULT_JETSKI_FLAGS
+                .iter()
+                .map(|flag| (*flag).to_string())
+                .collect(),
         }
     }
 }
