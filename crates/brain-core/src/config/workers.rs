@@ -14,6 +14,8 @@ pub struct ObserverConfig {
     pub watch_glob: String,
     pub rrf_threshold: f32,
     pub cosine_threshold: f32,
+    #[serde(default)]
+    pub agentapi_bin: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

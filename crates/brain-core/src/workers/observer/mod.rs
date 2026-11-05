@@ -20,6 +20,13 @@ pub trait ObserverHarnessAdapter: Send + Sync {
     fn harness_id(&self) -> &str;
     fn watch_paths(&self) -> &[PathBuf];
     fn parse_new_turns(&self, raw_bytes: &[u8]) -> Result<Vec<ObservedTurn>>;
+    fn parse_new_turns_for_path(
+        &self,
+        _source_path: Option<&Path>,
+        raw_bytes: &[u8],
+    ) -> Result<Vec<ObservedTurn>> {
+        self.parse_new_turns(raw_bytes)
+    }
     async fn push_memory(&self, session_id: &str, message: &str) -> Result<()>;
 }
 
@@ -67,7 +74,28 @@ pub async fn evaluate_and_push_turns(
     rrf_threshold: f32,
     cosine_threshold: f32,
 ) -> Result<Vec<String>> {
-    let turns = adapter.parse_new_turns(raw_bytes)?;
+    evaluate_and_push_turns_for_path(
+        adapter,
+        index,
+        state,
+        None,
+        raw_bytes,
+        rrf_threshold,
+        cosine_threshold,
+    )
+    .await
+}
+
+pub async fn evaluate_and_push_turns_for_path(
+    adapter: &dyn ObserverHarnessAdapter,
+    index: &BrainIndex,
+    state: &mut ObserverState,
+    source_path: Option<&Path>,
+    raw_bytes: &[u8],
+    rrf_threshold: f32,
+    cosine_threshold: f32,
+) -> Result<Vec<String>> {
+    let turns = adapter.parse_new_turns_for_path(source_path, raw_bytes)?;
     let mut pushed_ids = Vec::new();
 
     for turn in turns {
@@ -238,5 +266,52 @@ mod tests {
         for bad_session in ["", "-flag-injection", "bad space", "semi;colon", "../path"] {
             assert!(adapter.push_memory(bad_session, "msg").await.is_err());
         }
+
+        // Verify path-based <conversation-id> extraction and <USER_REQUEST> unwrapping
+        let transcript_path = Path::new(
+            "/home/user/.gemini/jetski/brain/0a560016-f24e-4e79-a7fd-ac3b3ae1b8a5/.system_generated/logs/transcript.jsonl",
+        );
+        let real_turn = br#"{"step_index":0,"source":"USER_EXPLICIT","type":"USER_INPUT","status":"DONE","content":"<USER_REQUEST>\nbiquad filter design\n</USER_REQUEST>\n<ADDITIONAL_METADATA>\nThe user is: test.\n</ADDITIONAL_METADATA>"}"#;
+        let path_turns = adapter
+            .parse_new_turns_for_path(Some(transcript_path), real_turn)
+            .unwrap();
+        assert_eq!(
+            path_turns,
+            vec![ObservedTurn {
+                session_id: "0a560016-f24e-4e79-a7fd-ac3b3ae1b8a5".to_string(),
+                user_text: "biquad filter design".to_string(),
+            }]
+        );
+
+        // Verify positional agentapi CLI args: `send-message <conversation-id> <message>`
+        let tmp = TempDir::new().unwrap();
+        let args_out = tmp.path().join("args.txt");
+        let fake_agentapi = tmp.path().join("fake-agentapi.sh");
+        std::fs::write(
+            &fake_agentapi,
+            format!("#!/bin/sh\nprintf '%s\\n' \"$@\" > \"{}\"\n", args_out.display()),
+        )
+        .unwrap();
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt;
+            std::fs::set_permissions(&fake_agentapi, std::fs::Permissions::from_mode(0o755))
+                .unwrap();
+        }
+        let script_adapter =
+            JetskiObserverAdapter::with_agentapi_bin(vec![], fake_agentapi.to_string_lossy());
+        script_adapter
+            .push_memory("0a560016-f24e-4e79-a7fd-ac3b3ae1b8a5", "hello recall")
+            .await
+            .unwrap();
+        let captured = std::fs::read_to_string(&args_out).unwrap();
+        assert_eq!(
+            captured.lines().collect::<Vec<_>>(),
+            vec![
+                "send-message",
+                "0a560016-f24e-4e79-a7fd-ac3b3ae1b8a5",
+                "hello recall"
+            ]
+        );
     }
 }

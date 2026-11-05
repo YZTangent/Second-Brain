@@ -14,7 +14,7 @@ args = ["--disable-slash-commands", "-p"]
 
 [observers.jetski]
 enabled = true
-watch_glob = "~/.gemini/jetski/brain/*/transcript.jsonl"
+watch_glob = "~/.gemini/jetski/brain/*/.system_generated/logs/transcript.jsonl"
 rrf_threshold = 0.025
 cosine_threshold = 0.72
 

@@ -2,7 +2,7 @@ use super::{ObservedTurn, ObserverHarnessAdapter};
 use anyhow::{bail, Context, Result};
 use async_trait::async_trait;
 use serde_json::Value;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::process::Stdio;
 use std::time::Duration;
 use tokio::process::Command;
@@ -10,6 +10,8 @@ use tokio::time::timeout;
 
 const HARNESS_ID_JETSKI: &str = "jetski";
 const DEFAULT_AGENTAPI_BIN: &str = "agentapi";
+const JETSKI_HOME_AGENTAPI_REL: &str = ".gemini/jetski/bin/agentapi";
+const ANTIGRAVITY_SOURCE_METADATA_ENV: &str = "ANTIGRAVITY_SOURCE_METADATA";
 const DEFAULT_SESSION_ID: &str = "default";
 const MAX_SESSION_ID_LEN: usize = 128;
 const DEFAULT_PUSH_TIMEOUT: Duration = Duration::from_secs(10);
@@ -24,7 +26,7 @@ impl JetskiObserverAdapter {
     pub fn new(watch_paths: Vec<PathBuf>) -> Self {
         Self {
             watch_paths,
-            agentapi_bin: DEFAULT_AGENTAPI_BIN.to_string(),
+            agentapi_bin: resolve_default_agentapi_bin(),
         }
     }
 
@@ -34,6 +36,55 @@ impl JetskiObserverAdapter {
             agentapi_bin: agentapi_bin.into(),
         }
     }
+}
+
+fn resolve_default_agentapi_bin() -> String {
+    if let Ok(home) = std::env::var("HOME") {
+        let candidate = Path::new(&home).join(JETSKI_HOME_AGENTAPI_REL);
+        if candidate.is_file() {
+            return candidate.to_string_lossy().into_owned();
+        }
+    }
+    DEFAULT_AGENTAPI_BIN.to_string()
+}
+
+pub fn extract_session_id_from_path(path: &Path) -> Option<String> {
+    let components: Vec<&str> = path
+        .components()
+        .filter_map(|c| c.as_os_str().to_str())
+        .collect();
+
+    // Canonical Jetski layout: .../brain/<conversation-id>/.system_generated/logs/transcript.jsonl
+    for (idx, comp) in components.iter().enumerate() {
+        if *comp == "brain" {
+            if let Some(candidate) = components.get(idx + 1) {
+                if validate_session_id(candidate).is_ok() {
+                    return Some((*candidate).to_string());
+                }
+            }
+        }
+    }
+
+    // Fallback for .../<conversation-id>/.system_generated/logs/transcript.jsonl
+    if components.len() >= 4
+        && components[components.len() - 3] == ".system_generated"
+        && components[components.len() - 2] == "logs"
+    {
+        let candidate = components[components.len() - 4];
+        if validate_session_id(candidate).is_ok() {
+            return Some(candidate.to_string());
+        }
+    }
+
+    // Fallback for .../<conversation-id>/transcript.jsonl
+    if components.len() >= 2 {
+        let candidate = components[components.len() - 2];
+        if validate_session_id(candidate).is_ok() {
+            return Some(candidate.to_string());
+        }
+    }
+
+    None
 }
 
 pub fn validate_session_id(session_id: &str) -> Result<()> {
@@ -64,10 +115,25 @@ fn is_user_turn(val: &Value) -> bool {
     }
 }
 
+fn unwrap_user_request_tag(raw: &str) -> &str {
+    const OPEN: &str = "<USER_REQUEST>";
+    const CLOSE: &str = "</USER_REQUEST>";
+    if let Some(start) = raw.find(OPEN) {
+        let after_open = &raw[start + OPEN.len()..];
+        if let Some(end) = after_open.find(CLOSE) {
+            let inner = after_open[..end].trim();
+            if !inner.is_empty() {
+                return inner;
+            }
+        }
+    }
+    raw
+}
+
 fn extract_turn_text(val: &Value) -> Option<String> {
     for key in ["user_text", "text", "content", "message"] {
         if let Some(s) = val.get(key).and_then(Value::as_str) {
-            let trimmed = s.trim();
+            let trimmed = unwrap_user_request_tag(s.trim()).trim();
             if !trimmed.is_empty() {
                 return Some(trimmed.to_string());
             }
@@ -87,6 +153,17 @@ impl ObserverHarnessAdapter for JetskiObserverAdapter {
     }
 
     fn parse_new_turns(&self, raw_bytes: &[u8]) -> Result<Vec<ObservedTurn>> {
+        self.parse_new_turns_for_path(None, raw_bytes)
+    }
+
+    fn parse_new_turns_for_path(
+        &self,
+        source_path: Option<&Path>,
+        raw_bytes: &[u8],
+    ) -> Result<Vec<ObservedTurn>> {
+        let fallback_session = source_path
+            .and_then(extract_session_id_from_path)
+            .unwrap_or_else(|| DEFAULT_SESSION_ID.to_string());
         let content = String::from_utf8_lossy(raw_bytes);
         let mut turns = Vec::new();
 
@@ -108,8 +185,8 @@ impl ObserverHarnessAdapter for JetskiObserverAdapter {
                 .get("session_id")
                 .and_then(Value::as_str)
                 .or_else(|| val.get("conversation_id").and_then(Value::as_str))
-                .unwrap_or(DEFAULT_SESSION_ID)
-                .to_string();
+                .map(str::to_string)
+                .unwrap_or_else(|| fallback_session.clone());
 
             turns.push(ObservedTurn {
                 session_id,
@@ -127,17 +204,12 @@ impl ObserverHarnessAdapter for JetskiObserverAdapter {
         }
 
         let mut cmd = Command::new(&self.agentapi_bin);
-        cmd.args([
-            "send-message",
-            "--session",
-            session_id,
-            "--message",
-            message,
-        ])
-        .stdin(Stdio::null())
-        .stdout(Stdio::piped())
-        .stderr(Stdio::piped())
-        .kill_on_drop(true);
+        cmd.args(["send-message", session_id, message])
+            .env_remove(ANTIGRAVITY_SOURCE_METADATA_ENV)
+            .stdin(Stdio::null())
+            .stdout(Stdio::piped())
+            .stderr(Stdio::piped())
+            .kill_on_drop(true);
 
         let output = timeout(DEFAULT_PUSH_TIMEOUT, cmd.output())
             .await
